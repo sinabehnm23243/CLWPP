@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>راهنمای تصویری نصب Cloudflare Worker Proxy PRO</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    line-height: 1.8;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  h1 {
+    color: #60a5fa;
+    border-bottom: 3px solid #3b82f6;
+    padding-bottom: 12px;
+    font-size: 28px;
+  }
+  h2 {
+    color: #a78bfa;
+    margin-top: 40px;
+    font-size: 22px;
+    border-right: 4px solid #a78bfa;
+    padding-right: 12px;
+  }
+  h3 {
+    color: #34d399;
+    margin-top: 24px;
+    font-size: 18px;
+  }
+  p { margin: 12px 0; }
+  .step {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  .step-number {
+    display: inline-block;
+    background: #3b82f6;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 32px;
+    font-weight: bold;
+    margin-left: 12px;
+  }
+  .screenshot {
+    width: 100%;
+    border: 2px solid #334155;
+    border-radius: 8px;
+    margin: 16px 0;
+    display: block;
+  }
+  .screenshot-caption {
+    color: #94a3b8;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 4px;
+    font-style: italic;
+  }
+  code {
+    background: #334155;
+    color: #fbbf24;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "Cascadia Code", "Fira Code", monospace;
+    direction: ltr;
+    display: inline-block;
+  }
+  pre {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+    direction: ltr;
+    color: #e2e8f0;
+    font-family: monospace;
+    font-size: 13px;
+  }
+  .note {
+    background: #1e3a8a;
+    border: 1px solid #3b82f6;
+    color: #dbeafe;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 16px 0;
+  }
+  .warning {
+    background: #7f1d1d;
+    border: 1px solid #ef4444;
+    color: #fecaca;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 16px 0;
+  }
+  .success {
+    background: #065f46;
+    border: 1px solid #10b981;
+    color: #a7f3d0;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 16px 0;
+  }
+  ul, ol { padding-right: 24px; }
+  li { margin: 6px 0; }
+  .toc {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  .toc a {
+    color: #60a5fa;
+    text-decoration: none;
+  }
+  .toc a:hover { text-decoration: underline; }
+  .badge {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+
+<h1>راهنمای تصویری نصب Cloudflare Worker Proxy PRO</h1>
+
+<p>این راهنما، نصب Worker Proxy PRO را به صورت قدم‌به‌قدم با تصویر نشان می‌دهد. در پایان، شما یک Worker فعال با ۵ پروتکل (VLESS, Trojan, SS, SS2022, XHTTP)، پنل مدیریت، آمار مصرف و بخش Clean IP خواهید داشت.</p>
+
+<div class="toc">
+<h3 style="margin-top:0">فهرست</h3>
+<ol>
+<li><a href="#step1">ثبت‌نام در Cloudflare</a></li>
+<li><a href="#step2">ایجاد KV Namespaces</a></li>
+<li><a href="#step3">ایجاد Worker جدید</a></li>
+<li><a href="#step4">کپی کد Worker</a></li>
+<li><a href="#step5">افزودن Bindings (KV و Durable Object)</a></li>
+<li><a href="#step6">افزودن متغیرهای محیطی</a></li>
+<li><a href="#step7">Deploy نهایی</a></li>
+<li><a href="#step8">تست Worker</a></li>
+<li><a href="#step9">تنظیم دامنه اختصاصی (اختیاری)</a></li>
+<li><a href="#step10">استفاده از بخش Clean IP</a></li>
+<li><a href="#step11">پنل مدیریت کاربران</a></li>
+</ol>
+</div>
+
+<h2 id="step1">مرحله ۱: ثبت‌نام در Cloudflare</h2>
+
+<div class="step">
+<span class="step-number">۱</span>
+<strong>ورود به Cloudflare</strong>
+<p>به <a href="https://dash.cloudflare.com" style="color:#34d399">dash.cloudflare.com</a> بروید. اگر اکانت ندارید، با ایمیل ثبت‌نام کنید (رایگان).</p>
+
+<img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/bde4b027340a.png" alt="Cloudflare Dashboard" class="screenshot">
+<div class="screenshot-caption">داشبورد اصلی Cloudflare پس از ورود</div>
+</div>
+
+<h2 id="step2">مرحله ۲: ایجاد KV Namespaces</h2>
+
+<div class="step">
+<span class="step-number">۲</span>
+<strong>ایجاد KV برای کاربران و آمار</strong>
+<p>به <strong>Storage & Databases → KV</strong> بروید و دو namespace بسازید:</p>
+<ul>
+<li><code>users</code> — برای ذخیره اطلاعات کاربران</li>
+<li><code>stats</code> — برای ذخیره آمار مصرف</li>
+</ul>
+
+<img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/4bca804fb29f.png" alt="KV Namespaces" class="screenshot">
+<div class="screenshot-caption">صفحه ایجاد KV Namespace</div>
+
+<div class="note">
+<strong>نکته:</strong> ID هر KV را ذخیره کنید — در مرحله ۵ نیاز خواهید داشت.
+</div>
+</div>
+
+<h2 id="step3">مرحله ۳: ایجاد Worker جدید</h2>
+
+<div class="step">
+<span class="step-number">۳</span>
+<strong>ساخت Worker</strong>
+<p>به <strong>Workers & Pages → Create</strong> بروید:</p>
+
+<img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/649ceddc2356.png" alt="Workers List" class="screenshot">
+<div class="screenshot-caption">لیست Workers و دکمه Create</div>
+
+<ul>
+<li>نام Worker را <code>cf-proxy-pro</code> بگذارید</li>
+<li>روی <strong>Deploy</strong> کلیک کنید</li>
+<li>سپس روی <strong>Edit code</strong> کلیک کنید</li>
+</ul>
+</div>
+
+<h2 id="step4">مرحله ۴: کپی کد Worker</h2>
+
+<div class="step">
+<span class="step-number">۴</span>
+<strong>اضافه کردن کد</strong>
+<p>در ادیتور کد، دو فایل ایجاد کنید:</p>
+
+<h3>فایل ۱: <code>_worker.js</code></h3>
+<p>محتوای فایل <code>_worker.js</code> از پوشه <code>cloudflare-proxy-worker-pro</code> را کپی و در اینجا جایگزین کنید.</p>
+
+<h3>فایل ۲: <code>blake3.js</code></h3>
+<p>در همان ادیتور، یک فایل جدید با نام <code>blake3.js</code> ایجاد کنید و محتوای فایل <code>blake3.js</code> را در آن کپی کنید.</p>
+
+<img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/2520ad9c3872.png" alt="Worker Code Editor" class="screenshot">
+<div class="screenshot-caption">ادیتور کد Cloudflare Workers — دو فایل را در پنل چپ ببینید</div>
+
+<div class="warning">
+<strong>هشدار:</strong> حتماً هر دو فایل را اضافه کنید. بدون <code>blake3.js</code>، Worker در زمان درخواست SS 2022 خطا می‌دهد.
+</div>
+</div>
+
+<h2 id="step5">مرحله ۵: افزودن Bindings</h2>
+
+<div class="step">
+<span class="step-number">۵</span>
+<strong>اتصال KV و Durable Object</strong>
+<p>به <strong>Settings → Bindings</strong> بروید و سه binding اضافه کنید:</p>
+
+<h3>Binding ۱: KV Namespace</h3>
+<ul>
+<li>Variable name: <code>USERS_KV</code></li>
+<li>KV namespace: <code>users</code></li>
+</ul>
+
+<h3>Binding ۲: KV Namespace</h3>
+<ul>
+<li>Variable name: <code>STATS_KV</code></li>
+<li>KV namespace: <code>stats</code></li>
+</ul>
+
+<h3>Binding ۳: Durable Object</h3>
+<ul>
+<li>Variable name: <code>XHTTP_SESSION</code></li>
+<li>Durable Object class: <code>XhttpSession</code></li>
+</ul>
+
+<img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/2cef1b789167.png" alt="Bindings" class="screenshot">
+<div class="screenshot-caption">صفحه Bindings در تنظیمات Worker</div>
+
+<div class="success">
+<strong>موفقیت:</strong> پس از افزودن هر سه binding، صفحه را ذخیره کنید.
+</div>
+</div>
+
+<h2 id="step6">مرحله ۶: افزودن متغیرهای محیطی</h2>
+
+<div class="step">
+<span class="step-number">۶</span>
+<strong>تنظیم متغیرها</strong>
+<p>در همان صفحه <strong>Settings → Variables</strong>، این متغیرها را اضافه کنید:</p>
+
+<h3>متغیرهای لازم:</h3>
+<table style="width:100%; border-collapse: collapse;">
+<thead>
+<tr style="background:#334155">
+<th style="padding:8px; border:1px solid #475569; text-align:right;">نام متغیر</th>
+<th style="padding:8px; border:1px solid #475569; text-align:right;">مقدار نمونه</th>
+<th style="padding:8px; border:1px solid #475569; text-align:right;">نوع</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding:8px; border:1px solid #334155;"><code>UUID</code></td><td style="padding:8px; border:1px solid #334155;"><code>d342d11e-d424-...</code></td><td style="padding:8px; border:1px solid #334155;">Text</td></tr>
+<tr><td style="padding:8px; border:1px solid #334155;"><code>TROJAN_PASSWORD</code></td><td style="padding:8px; border:1px solid #334155;">رمز قوی</td><td style="padding:8px; border:1px solid #334155;">Secret</td></tr>
+<tr><td style="padding:8px; border:1px solid #334155;"><code>SS_PASSWORD</code></td><td style="padding:8px; border:1px solid #334155;">رمز قوی متفاوت</td><td style="padding:8px; border:1px solid #334155;">Secret</td></tr>
+<tr><td style="padding:8px; border:1px solid #334155;"><code>SS2022_PASSWORD</code></td><td style="padding:8px; border:1px solid #334155;"><code>openssl rand -base64 32</code></td><td style="padding:8px; border:1px solid #334155;">Secret</td></tr>
+<tr><td style="padding:8px; border:1px solid #334155;"><code>ADMIN_TOKEN</code></td><td style="padding:8px; border:1px solid #334155;"><code>openssl rand -hex 32</code></td><td style="padding:8px; border:1px solid #334155;">Secret</td></tr>
+</tbody>
+</table>
+
+<h3>تولید مقادیر با OpenSSL:</h3>
+<pre>$ openssl rand -base64 32     # برای SS2022_PASSWORD
+$ openssl rand -hex 32        # برای ADMIN_TOKEN
+$ uuidgen                     # برای UUID (در لینوکس)
+$ python -c "import uuid; print(uuid.uuid4())"  # برای UUID</pre>
+</div>
+
+<h2 id="step7">مرحله ۷: Deploy نهایی</h2>
+
+<div class="step">
+<span class="step-number">۷</span>
+<strong>ذخیره و Deploy</strong>
+<p>به ادیتور کد برگردید و روی دکمه <strong>Save and Deploy</strong> در بالا راست کلیک کنید.</p>
+
+<div class="success">
+<strong>پس از Deploy موفق:</strong> Worker شما روی آدرس زیر در دسترس خواهد بود:
+<br>
+<code>https://cf-proxy-pro.&lt;your-username&gt;.workers.dev/</code>
+</div>
+
+<img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/2cef1b789167.png" alt="Deploy Success" class="screenshot">
+<div class="screenshot-caption">دکمه Deploy در بالای ادیتور</div>
+</div>
+
+<h2 id="step8">مرحله ۸: تست Worker</h2>
+
+<div class="step">
+<span class="step-number">۸</span>
+<strong>تست صفحه راهنما</strong>
+<p>آدرس Worker را در مرورگر باز کنید:</p>
+<pre>https://cf-proxy-pro.&lt;your-username&gt;.workers.dev/</pre>
+
+<p>باید صفحه‌ای با ۵ کانفیگ، ساب‌لینک، پنل مدیریت و بخش Clean IP ببینید.</p>
+
+<h3>تست ساب‌لینک:</h3>
+<pre>https://cf-proxy-pro.&lt;your-username&gt;.workers.dev/sub</pre>
+<p>باید یک رشته Base64 طولانی برگرداند که شامل هر ۵ کانفیگ است.</p>
+
+<h3>تست در کلاینت:</h3>
+<ol>
+<li>یکی از کانفیگ‌ها را کپی کنید (VLESS پیشنهادی)</li>
+<li>در کلاینت (v2rayN، NekoBox، Streisand، V2RayNG) وارد کنید</li>
+<li>اتصال را تست کنید</li>
+</ol>
+</div>
+
+<h2 id="step9">مرحله ۹: تنظیم دامنه اختصاصی (اختیاری)</h2>
+
+<div class="step">
+<span class="step-number">۹</span>
+<strong>استفاده از دامنه خودتان</strong>
+<p>اگر <code>workers.dev</code> فیلتر است، یک دامنه اختصاصی به Worker اختصاص دهید:</p>
+
+<ol>
+<li>در Cloudflare یک دامنه ثبت کنید (یا از دامنه‌های رایگان <code>eu.org</code> استفاده کنید)</li>
+<li>به <strong>Workers → cf-proxy-pro → Triggers → Custom Domains</strong> بروید</li>
+<li>یک ساب‌دامنه مثل <code>proxy.example.com</code> اضافه کنید</li>
+<li>کانفیگ کلاینت را با دامنه جدید به‌روزرسانی کنید</li>
+</ol>
+
+<div class="note">
+<strong>مزیت:</strong> دامنه اختصاصی معمولاً فیلتر نیست و سرعت بهتری دارد.
+</div>
+</div>
+
+<h2 id="step10">مرحله ۱۰: استفاده از بخش Clean IP</h2>
+
+<div class="step">
+<span class="step-number">۱۰</span>
+<strong>جستجوی IP تمیز</strong>
+<p>به آدرس زیر بروید:</p>
+<pre>https://cf-proxy-pro.&lt;your-username&gt;.workers.dev/cleanip</pre>
+
+<h3>امکانات بخش Clean IP:</h3>
+<ul>
+<li>🎬 تست <strong>Netflix</strong> (آیا IP توسط Netflix بلاک شده؟)</li>
+<li>🤖 تست <strong>ChatGPT/OpenAI</strong> (آیا IP از OpenAI محروم است؟)</li>
+<li>🏰 تست <strong>Disney+</strong></li>
+<li>📺 تست <strong>YouTube</strong></li>
+<li>🎵 تست <strong>Spotify</strong></li>
+<li>🎵 تست <strong>TikTok</strong></li>
+<li>☁️ تست <strong>Cloudflare</strong> (وضعیت اتصال + لوکیشن)</li>
+</ul>
+
+<h3>تولید IP تصادفی Cloudflare:</h3>
+<p>روی دکمه <strong>«تولید IP تصادفی Cloudflare»</strong> کلیک کنید تا یک IP از رنج‌های معروف Cloudflare به شما داده شود. سپس آن را در کلاینت خود به‌عنوان <strong>SNI</strong> یا <strong>Address</strong> تنظیم کنید.</p>
+
+<h3>CIDRهای Cloudflare پشتیبانی‌شده:</h3>
+<pre>173.245.48.0/20
+103.21.244.0/22
+103.22.200.0/22
+103.31.4.0/22
+141.101.64.0/18
+108.162.192.0/18
+190.93.240.0/20
+188.114.96.0/20
+197.234.240.0/22
+198.41.128.0/17
+162.158.0.0/15
+104.16.0.0/13
+104.24.0.0/14
+172.64.0.0/13
+131.0.72.0/22</pre>
+
+<div class="warning">
+<strong>نکته مهم:</strong> تست‌ها از داخل Worker اجرا می‌شوند و وضعیت IP خود Worker را نشان می‌دهند. برای تست واقعی یک IP خاص، باید آن را در کلاینت خود تنظیم کنید و از طریق اتصال واقعی تست کنید.
+</div>
+</div>
+
+<h2 id="step11">مرحله ۱۱: پنل مدیریت کاربران</h2>
+
+<div class="step">
+<span class="step-number">۱۱</span>
+<strong>مدیریت کاربران</strong>
+<p>به آدرس زیر بروید (با توکن تنظیم‌شده در متغیر <code>ADMIN_TOKEN</code>):</p>
+<pre>https://cf-proxy-pro.&lt;your-username&gt;.workers.dev/admin?token=YOUR_ADMIN_TOKEN</pre>
+
+<h3>امکانات پنل:</h3>
+<ul>
+<li>➕ افزودن کاربر جدید (UUID، نام، رمز Trojan، رمز SS)</li>
+<li>📋 لیست کاربران فعلی</li>
+<li>📊 مشاهده آمار مصرف هر کاربر (آپلود/دانلود/کل به MB)</li>
+<li>🗑️ حذف کاربران</li>
+<li>✓/✗ فعال/غیرفعال کردن کاربران</li>
+</ul>
+
+<img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/2520ad9c3872.png" alt="Admin Panel" class="screenshot">
+<div class="screenshot-caption">نمونه‌ای از پنل مدیریت</div>
+</div>
+
+<h2>نکات نهایی</h2>
+
+<div class="success">
+<h3 style="margin-top:0">✅ نصب موفق بود!</h3>
+<p>اگر همه مراحل را درست انجام داده باشید، Worker شما آماده استفاده است. این موارد را به خاطر بسپارید:</p>
+<ul>
+<li>سقف رایگان Workers: ۱۰۰٬۰۰۰ درخواست در روز</li>
+<li>سقف رایگان KV: ۱۰۰٬۰۰۰ reads و ۱٬۰۰۰ writes در روز</li>
+<li>سقف رایگان Durable Objects: ۱۰۰٬۰۰۰ requests در روز</li>
+<li>ADMIN_TOKEN را قتی نگه دارید — دسترسی کامل به پنل دارد</li>
+<li>هر چند وقت یک‌بار UUID و رمزها را تغییر دهید</li>
+</ul>
+</div>
+
+<div class="warning">
+<h3 style="margin-top:0">⚠️ هشدارهای امنیتی</h3>
+<ul>
+<li>هرگز ADMIN_TOKEN را در کد Hard-code نکنید — در Variables با نوع Secret ذخیره کنید</li>
+<li>SS2022_PASSWORD باید <strong>base64 یک کلید ۳۲ بایتی</strong> باشد (نه یک رمز متنی)</li>
+<li>اگر Worker به‌طور عمومی قابل دسترسی است، rate limiting را فعال کنید</li>
+<li>برای محیط production، CORS و IP allowlist را اضافه کنید</li>
+</ul>
+</div>
+
+<h2>راهنمای Troubleshooting</h2>
+
+<h3>مشکل: Worker خطای 500 می‌دهد</h3>
+<p>احتمالاً یکی از متغیرهای محیطی تنظیم نشده. به <strong>Settings → Variables</strong> بروید و همه متغیرهای لازم را بررسی کنید.</p>
+
+<h3>مشکل: کلاینت وصل نمی‌شود</h3>
+<ol>
+<li>صفحه راهنما <code>/</code> را باز کنید — کانفیگ‌های آماده را کپی کنید</li>
+<li>ساب‌لینک <code>/sub</code> را در کلاینت اضافه کنید</li>
+<li>اگر <code>workers.dev</code> فیلتر است، از دامنه اختصاصی استفاده کنید</li>
+<li>پروتکل XHTTP را امتحان کنید (وقتی WS فیلتر است)</li>
+</ol>
+
+<h3>مشکل: پنل مدیریت باز نمی‌شود</h3>
+<p>بررسی کنید که <code>ADMIN_TOKEN</code> در URL با مقدار تنظیم‌شده در Variables مطابقت داشته باشد.</p>
+
+<h3>مشکل: آمار مصرف صفر است</h3>
+<p>بررسی کنید که <code>STATS_KV</code> به‌درستی به KV namespace متصل شده باشد. در <strong>Bindings</strong> بررسی کنید.</p>
+
+<hr style="margin:32px 0; border-color:#334155;">
+
+<p style="color:#94a3b8; font-size:13px; text-align:center;">
+این راهنما برای Cloudflare Worker Proxy PRO v3 نوشته شده است.
+<br>
+برای کد کامل و فایل‌های پروژه به پوشه <code>cloudflare-proxy-worker-pro</code> مراجعه کنید.
+</p>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+name = "cf-proxy-pro"
+main = "_worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# ===== متغیرهای محیطی =====
+[vars]
+UUID = "d342d11e-d424-4583-b36e-524ab1f0afa4"
+TROJAN_PASSWORD = "MyTrojanPass2025"
+SS_PASSWORD = "MyShadowsocksPass2025"
+SS2022_PASSWORD = "YWVzLTI1Ni1nY206YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnh5ejEyMzQ1Njc4"
+ADMIN_TOKEN = "change-this-to-a-strong-token"
+SUB_PATH = "sub"
+PROXY_PATH = "ws"
+XHTTP_PATH = "xhttp"
+ADMIN_PATH = "admin"
+CLEANIP_PATH = "cleanip"
+NAME = "cf-worker-pro"
+
+# ===== KV Namespaces (در داشبورد Wrangler یا Cloudflare ایجاد کنید) =====
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "your-kv-namespace-id-for-users"
+
+[[kv_namespaces]]
+binding = "STATS_KV"
+id = "your-kv-namespace-id-for-stats"
+
+[[kv_namespaces]]
+binding = "CLEANIPS_KV"
+id = "your-kv-namespace-id-for-cleanips"
+
+# ===== Durable Objects =====
+[[durable_objects.bindings]]
+name = "XHTTP_SESSION"
+class_name = "XhttpSession"
+
+# مهاجرت Durable Objects (اولین deploy)
+[[migrations]]
+tag = "v1"
+new_classes = ["XhttpSession"]
+
+# ===== مسیر دامنه اختصاصی (اختیاری) =====
+# [[routes]]
+# pattern = "proxy.example.com/*"
+# custom_domain = true
